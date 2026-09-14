@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e7">
 <title>Priority — NCLEX-RN Review Sheet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -215,6 +216,11 @@
   }
   nav.toolbar .inner { max-width: 960px; margin: 0 auto; padding: 8px 20px 10px; }
 
+  .toolbar-top { display: flex; align-items: center; gap: 10px; }
+  .toolbar-top .sect-nav { flex: 1 1 auto; min-width: 0; }
+  .sect-nav a.current { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .sect-nav a[hidden] { display: none; }
+
   /* Scroll progress — slim indicator at the top edge of the toolbar */
   .scroll-progress {
     position: absolute;
@@ -249,6 +255,7 @@
     padding: 5px 14px;
     font-size: 13.5px;
     font-weight: 700;
+    -webkit-tap-highlight-color: transparent;
     transition: border-color 0.18s ease, color 0.18s ease, background-color 0.18s ease, transform 0.18s var(--ease-out);
   }
   @media (hover: hover) and (pointer: fine) {
@@ -268,6 +275,7 @@
     font-weight: 700;
     padding: 6px 14px;
     min-height: 34px;
+    -webkit-tap-highlight-color: transparent;
     border-radius: 999px;
     border: 1.5px solid var(--ink);
     background: transparent;
@@ -577,6 +585,7 @@
     border-left: 4px solid var(--line);
     border-radius: 10px;
     padding: 13px 17px;
+    -webkit-tap-highlight-color: transparent;
     margin-bottom: 10px;
     transition: border-color 0.18s ease, transform 0.18s var(--ease-out), box-shadow 0.18s ease, background-color 0.3s ease;
   }
@@ -613,11 +622,12 @@
     transition: filter 0.22s ease;
   }
   body.self-test li.note { cursor: pointer; }
-  body.self-test li.note:hover { border-color: var(--accent); }
-  body.self-test li.note.revealed .ans,
-  body.self-test li.note .ans:hover {
-    filter: none;
-    user-select: text;
+  @media (hover: hover) and (pointer: fine) {
+    body.self-test li.note:hover { border-color: var(--accent); }
+  }
+  body.self-test li.note.revealed .ans { filter: none; user-select: text; }
+  @media (hover: hover) and (pointer: fine) {
+    body.self-test li.note .ans:hover { filter: none; user-select: text; }
   }
   body.self-test li.note.revealed {
     background: var(--accent-soft);
@@ -632,6 +642,8 @@
     border-radius: 10px;
     background: var(--img-bg);
     overflow: hidden;
+    cursor: zoom-in;
+    -webkit-tap-highlight-color: transparent;
   }
   figure.note-img img {
     display: block;
@@ -650,10 +662,26 @@
     font-style: italic;
   }
 
-  /* Image grid (click to zoom) */
+  /* Image grid */
   .img-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 12px; margin-top: 12px; }
-  .img-grid figure.note-img { max-width: none; margin: 0; cursor: zoom-in; }
-  .img-grid figure.note-img.zoomed { grid-column: 1 / -1; cursor: zoom-out; }
+  .img-grid figure.note-img { max-width: none; margin: 0; }
+
+  /* ---------- Image lightbox ---------- */
+  .lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(8, 9, 12, .94); display: flex; flex-direction: column; opacity: 0; transition: opacity .22s ease; }
+  .lightbox[hidden] { display: none; }
+  .lightbox.open { opacity: 1; }
+  .lb-scroll { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; padding: max(56px, env(safe-area-inset-top)) 12px 12px; touch-action: pan-x pan-y pinch-zoom; -webkit-overflow-scrolling: touch; }
+  .lb-img { max-width: 100%; max-height: 100%; height: auto; border-radius: 6px; cursor: zoom-in; transition: max-width .25s var(--ease-out); }
+  .lightbox.zoom .lb-scroll { align-items: flex-start; justify-content: flex-start; }
+  .lightbox.zoom .lb-img { max-width: none; max-height: none; width: 220%; cursor: zoom-out; }
+  .lb-close { position: absolute; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.1); color: #fff; font-size: 28px; line-height: 1; cursor: pointer; z-index: 1; }
+  .lb-cap { margin: 0; padding: 10px 16px max(14px, env(safe-area-inset-bottom)); color: #cfd4da; font-size: 14px; font-style: italic; text-align: center; }
+  @media (min-width: 721px) { .lightbox.zoom .lb-img { width: 160%; } }
+  body.lb-lock { overflow: hidden; }
+
+  /* ---------- Back to top ---------- */
+  .to-top { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); font-size: 20px; box-shadow: var(--card-shadow-hover); opacity: 0; transform: translateY(12px) scale(.9); pointer-events: none; transition: opacity .25s ease, transform .3s var(--ease-spring); z-index: 90; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .to-top.show { opacity: 1; transform: none; pointer-events: auto; }
 
   /* ---------- Footer ---------- */
   footer {
@@ -708,17 +736,63 @@
   /* ---------- Responsive ---------- */
   @media (max-width: 720px) {
     body { font-size: 16px; }
-    header.page { padding-top: 38px; }
-    .sect-nav { flex-wrap: wrap; }
-    .control-row .filter-btn, #self-test { padding: 5px 12px; font-size: 13px; min-height: 40px; }
-    #self-test { margin-left: 0; }
-    .theme-toggle { width: 66px; height: 36px; margin-left: auto; }
-    section.block { scroll-margin-top: 170px; }
-    li.note { padding: 11px 13px; }
-    li.note .pill { display: inline-block; margin-bottom: 2px; }
+    .wrap, nav.toolbar .inner {
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+    header.page { padding-block: 26px 18px; }
+    header.page h1 { font-size: 2.3rem; }
+    .tag-legend { margin-top: 14px; }
+    .tag-legend > span { margin-right: 10px; font-size: 13px; }
+
+    nav.toolbar .inner { padding-top: 8px; padding-bottom: 8px; }
+    nav.toolbar { transition: transform .28s var(--ease-out); }
+    nav.toolbar.toolbar-hidden { transform: translateY(-100%); }
+
+    .sect-nav {
+      flex-wrap: nowrap;
+      gap: 6px;
+      padding-bottom: 0;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+              mask-image: linear-gradient(90deg, #000 88%, transparent);
+    }
+    .sect-nav::-webkit-scrollbar { display: none; }
+    .sect-nav a { scroll-snap-align: start; padding: 0 12px; font-size: 13px; min-height: 36px; display: inline-flex; align-items: center; }
+    .theme-toggle { width: 58px; height: 32px; margin-left: 0; }
+    .theme-toggle .tt-orb { width: 22px; height: 22px; top: 5px; left: 5px; }
+    .theme-toggle[aria-pressed="true"] .tt-orb { transform: translateX(26px) rotate(200deg); }
+    .theme-toggle:active .tt-orb { width: 26px; }
+    .theme-toggle[aria-pressed="true"]:active .tt-orb { transform: translateX(22px) rotate(200deg); }
+
+    .control-row { flex-wrap: nowrap; gap: 6px; padding-top: 8px; }
+    .control-row .filter-btn, #self-test { padding: 0 11px; font-size: 13px; min-height: 36px; white-space: nowrap; }
+    #self-test { margin-left: auto; }
+    #self-test .st-state { display: none; }
+
+    section.block { scroll-margin-top: 104px; }
+    h2.section-title { margin-top: 34px; }
+    h3.sub-title { margin-top: 26px; }
+
+    ol.principles li { padding-left: 44px; }
+    ol.principles li::before { width: 30px; height: 30px; font-size: 13px; top: 12px; }
+    ul.frameworks { grid-template-columns: 1fr; gap: 8px; }
+    ul.frameworks li { padding: 11px 14px; }
+    .golden { padding: 14px 16px; }
+    .golden p { font-size: 1.02rem; }
+
+    li.note { padding: 11px 13px; border-radius: 9px; }
+    li.note .txt { line-height: 1.55; }
+    li.note .pill { margin-right: 2px; margin-bottom: 2px; }
+    figure.note-img { max-width: 100% !important; }
   }
-  @media (max-width: 480px) {
-    .control-row .counter { width: 100%; }
+  @media (max-width: 380px) {
+    .control-row .counter { display: none; }
+    .control-row .filter-btn, #self-test { padding: 0 9px; }
+  }
+  @media (min-width: 381px) and (max-width: 720px) {
+    .control-row .counter { display: none; }
   }
 </style>
 <script>
@@ -731,6 +805,8 @@
       var d = document.documentElement;
       d.dataset.theme = t;
       d.style.colorScheme = t;
+      var mc = document.querySelector('meta[name="theme-color"]');
+      if (mc) mc.setAttribute('content', t === 'dark' ? '#0d0f12' : '#f6f1e7');
     } catch (e) {}
   })();
 </script>
@@ -750,24 +826,18 @@
 
 <nav class="toolbar" aria-label="Page navigation and filters">
   <div class="inner">
-    <div class="sect-nav">
-      <a href="#part1">Part 1 — How to prioritize</a>
-      <a href="#neuro">Neuro</a>
-      <a href="#cardio">Cardiovascular</a>
-      <a href="#resp">Respiratory</a>
-      <a href="#postop">Post-op &amp; Surgical</a>
-      <a href="#sepsis">Infection &amp; Sepsis</a>
-      <a href="#endo">Endocrine</a>
-      <a href="#obped">OB &amp; Pediatrics</a>
-      <a href="#meds">Meds, Blood &amp; Other</a>
-    </div>
-    <div class="control-row">
-      <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
-      <button class="filter-btn" data-filter="p" aria-pressed="false">Priority</button>
-      <button class="filter-btn" data-filter="e" aria-pressed="false">Expected</button>
-      <button class="filter-btn" data-filter="r" aria-pressed="false">Ref</button>
-      <span class="counter" id="note-count" aria-live="polite">44 notes</span>
-      <button id="self-test" aria-pressed="false">Self-test: Off</button>
+    <div class="toolbar-top">
+      <div class="sect-nav">
+        <a href="#part1">Part 1 — How to prioritize</a>
+        <a href="#neuro">Neuro</a>
+        <a href="#cardio">Cardiovascular</a>
+        <a href="#resp">Respiratory</a>
+        <a href="#postop">Post-op &amp; Surgical</a>
+        <a href="#sepsis">Infection &amp; Sepsis</a>
+        <a href="#endo">Endocrine</a>
+        <a href="#obped">OB &amp; Pediatrics</a>
+        <a href="#meds">Meds, Blood &amp; Other</a>
+      </div>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme" title="Switch to dark theme (T)">
         <span class="tt-sky" aria-hidden="true">
           <span class="tt-cloud tt-cloud-1"></span>
@@ -783,6 +853,14 @@
           </span>
         </span>
       </button>
+    </div>
+    <div class="control-row">
+      <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+      <button class="filter-btn" data-filter="p" aria-pressed="false">Priority</button>
+      <button class="filter-btn" data-filter="e" aria-pressed="false">Expected</button>
+      <button class="filter-btn" data-filter="r" aria-pressed="false">Ref</button>
+      <span class="counter" id="note-count" aria-live="polite">44 notes</span>
+      <button id="self-test" type="button" aria-pressed="false"><span class="st-label">Self-test</span><span class="st-state">: Off</span></button>
     </div>
   </div>
 </nav>
@@ -1027,6 +1105,14 @@
   </div>
 </footer>
 
+<div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button class="lb-close" type="button" aria-label="Close image">×</button>
+  <div class="lb-scroll"><img class="lb-img" alt=""></div>
+  <p class="lb-cap"></p>
+</div>
+
+<button id="to-top" class="to-top" type="button" aria-label="Back to top">↑</button>
+
 <script>
   (function () {
     'use strict';
@@ -1050,6 +1136,14 @@
         }
       });
       count.textContent = (tag === 'all') ? total + ' notes' : shown + ' of ' + total + ' notes';
+      /* Hide empty sections (and their nav links) when filtering */
+      document.querySelectorAll('section.block').forEach(function (sec) {
+        if (!sec.querySelector('ul.note-list')) return;
+        var hasVisible = !!sec.querySelector('li.note:not(.hidden)');
+        sec.hidden = !hasVisible;
+        var lnk = document.querySelector('.sect-nav a[href="#' + sec.id + '"]');
+        if (lnk) lnk.hidden = !hasVisible;
+      });
       document.querySelectorAll('.filter-btn').forEach(function (b) {
         var active = b.dataset.filter === tag;
         b.classList.toggle('active', active);
@@ -1073,7 +1167,7 @@
       var on = document.body.classList.toggle('self-test');
       st.classList.toggle('active', on);
       st.setAttribute('aria-pressed', on ? 'true' : 'false');
-      st.textContent = on ? 'Self-test: On (tap to reveal)' : 'Self-test: Off';
+      st.querySelector('.st-state').textContent = on ? ': On — tap to reveal' : ': Off';
       if (!on) notes.forEach(function (n) { n.classList.remove('revealed'); });
     });
 
@@ -1083,12 +1177,45 @@
       });
     });
 
-    /* ---------- Image zoom ---------- */
-    document.querySelectorAll('.img-grid figure').forEach(function (f) {
+    /* ---------- Image lightbox ---------- */
+    var lb = document.getElementById('lightbox');
+    var lbImg = lb.querySelector('.lb-img');
+    var lbCap = lb.querySelector('.lb-cap');
+    var lbClose = lb.querySelector('.lb-close');
+    var lbScroll = lb.querySelector('.lb-scroll');
+
+    document.querySelectorAll('figure.note-img').forEach(function (f) {
       f.addEventListener('click', function (e) {
         e.stopPropagation();
-        f.classList.toggle('zoomed');
+        var im = f.querySelector('img');
+        var cp = f.querySelector('figcaption');
+        lbImg.setAttribute('src', im ? im.getAttribute('src') : '');
+        lbImg.setAttribute('alt', im ? (im.getAttribute('alt') || '') : '');
+        lbCap.textContent = cp ? cp.textContent : '';
+        lb.removeAttribute('hidden');
+        requestAnimationFrame(function () { lb.classList.add('open'); });
+        document.body.classList.add('lb-lock');
+        lbClose.focus();
       });
+    });
+
+    lbImg.addEventListener('click', function (e) {
+      e.stopPropagation();
+      lb.classList.toggle('zoom');
+    });
+
+    function closeLb() {
+      lb.classList.remove('open', 'zoom');
+      document.body.classList.remove('lb-lock');
+      setTimeout(function () { lb.setAttribute('hidden', ''); }, 220);
+    }
+
+    lbClose.addEventListener('click', closeLb);
+    lb.addEventListener('click', function (e) {
+      if (e.target === lb || e.target === lbScroll) closeLb();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !lb.hasAttribute('hidden')) closeLb();
     });
 
     /* ---------- Theme system ---------- */
@@ -1113,6 +1240,8 @@
       var apply = function () {
         root.dataset.theme = theme;
         root.style.colorScheme = theme;
+        var mc = document.querySelector('meta[name="theme-color"]');
+        if (mc) mc.setAttribute('content', theme === 'dark' ? '#0d0f12' : '#f6f1e7');
         syncToggle();
         try { localStorage.setItem(STORE, theme); } catch (e) {}
       };
@@ -1153,6 +1282,7 @@
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       var el = document.activeElement;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+      if (lb && !lb.hasAttribute('hidden')) return;
       e.preventDefault();
       toggleTheme();
     });
@@ -1175,8 +1305,66 @@
     window.addEventListener('scroll', updateProgress, { passive: true });
     window.addEventListener('resize', updateProgress);
     updateProgress();
+
+    /* ---------- Auto-hide toolbar on phone scroll + back-to-top ---------- */
+    var toTop = document.getElementById('to-top');
+    var phoneMQ = window.matchMedia('(max-width: 720px)');
+    var lastY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var hideAfter = 0;
+    var anchorY = lastY;
+    var dir = 0;
+
+    if (toTop) {
+      toTop.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    function onScroll() {
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      if (toTop) toTop.classList.toggle('show', y > 900);
+      if (phoneMQ.matches && toolbar && (!lb || lb.hasAttribute('hidden')) && Date.now() > hideAfter) {
+        var nd = y > lastY ? 1 : (y < lastY ? -1 : dir);
+        if (nd !== dir) { dir = nd; anchorY = lastY; }
+        if (y < 260) toolbar.classList.remove('toolbar-hidden');
+        else if (dir === 1 && y - anchorY > 12) toolbar.classList.add('toolbar-hidden');
+        else if (dir === -1 && anchorY - y > 12) toolbar.classList.remove('toolbar-hidden');
+      }
+      lastY = y;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    document.querySelectorAll('.sect-nav a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        if (toolbar) toolbar.classList.remove('toolbar-hidden');
+        hideAfter = Date.now() + 700;
+      });
+    });
+
+    /* ---------- Scroll-spy ---------- */
+    var spyLinks = document.querySelectorAll('.sect-nav a');
+    var sectNavEl = document.querySelector('.sect-nav');
+    if ('IntersectionObserver' in window && spyLinks.length) {
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          var id = en.target.id;
+          if (id === 'notes-part2') return;
+          spyLinks.forEach(function (l) {
+            l.classList.toggle('current', l.getAttribute('href') === '#' + id);
+          });
+          var link = document.querySelector('.sect-nav a[href="#' + id + '"]');
+          if (link && sectNavEl) {
+            sectNavEl.scrollTo({ left: link.getBoundingClientRect().left - sectNavEl.getBoundingClientRect().left + sectNavEl.scrollLeft - 16, behavior: 'smooth' });
+          }
+        });
+      }, { rootMargin: '-35% 0px -60% 0px' });
+      document.querySelectorAll('section.block[id]').forEach(function (s) { spy.observe(s); });
+    }
   })();
 </script>
+
 
 </body>
 </html>
